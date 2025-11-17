@@ -39,9 +39,9 @@ class TagerInvoicModel(models.Model):
     # useremployee = models.ForeignKey(UserEmployee, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
     is_finished = models.BooleanField(default=False)
-    stay = models.DecimalField(decimal_places=2, max_digits=7, blank=False, default=0)
-    Payment = models.DecimalField(decimal_places=2, max_digits=7, blank=False, default=0)
-    total = models.DecimalField(decimal_places=2, max_digits=7, blank=False, default=0)
+    stay = models.DecimalField(decimal_places=2, max_digits=15, blank=False, default=0)
+    Payment = models.DecimalField(decimal_places=2, max_digits=15, blank=False, default=0)
+    total = models.DecimalField(decimal_places=2, max_digits=15, blank=False, default=0)
     barcode = models.ImageField(upload_to="images/barcodestager/", blank=True)
     barcode_id = models.CharField(max_length=13, null=True)
 
@@ -70,8 +70,8 @@ class TagerInvoicDetails(models.Model):
     invoice = models.ForeignKey(TagerInvoicModel, null=True, on_delete=models.CASCADE, related_name="tagerinvoiceitems")
     name = models.CharField(max_length=150, default="", blank=False)
     description = models.CharField(max_length=150, verbose_name=_("description"))
-    price_buy = models.DecimalField(decimal_places=2, max_digits=7, default=0)
-    quantity = models.DecimalField(decimal_places=2, max_digits=7, default=0.0)
+    price_buy = models.DecimalField(decimal_places=2, max_digits=15, default=0)
+    quantity = models.DecimalField(decimal_places=2, max_digits=15, default=0.0)
     time = models.DateTimeField(auto_now_add=True)
     type_quantity = models.CharField(max_length=100, null=True)
     is_finished = models.BooleanField(default=False)
@@ -97,7 +97,7 @@ class TagerDof3atModel(models.Model):
     usermanage = models.ForeignKey(User, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="usertagerdof3at")
     description = models.CharField(max_length=150, verbose_name=_("description"))
-    dof3a = models.DecimalField(decimal_places=2, max_digits=7, blank=False)
+    dof3a = models.DecimalField(decimal_places=2, max_digits=15, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 

@@ -16,8 +16,9 @@ class MoudulerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class MoudulerUserSerializer(serializers.ModelSerializer):
-    # productsmoduler = serializers.SerializerMethodField(method_name="get_productsmoduler", read_only=True)
+    productsmoduler = serializers.SerializerMethodField(method_name="get_products_moduler", read_only=True)
     moduler_profile = serializers.SerializerMethodField(method_name="get_moduler_profile", read_only=True)
+    # closeDay = serializers.SerializerMethodField(method_name="get_moduler_closed", read_only=True)
 
     class Meta:
         model = ModulerUserModel
@@ -32,10 +33,17 @@ class MoudulerUserSerializer(serializers.ModelSerializer):
         return serializer.data
 
 
-    # def get_productsmoduler(self, obj):
-    #     print(obj)
-    #     if obj.name == "محل":
-    #         user_emp = obj.productsmoduler
-    #
-    #         serializer = ProductsSerializer(user_emp, many=True)
-    #         return serializer.data
+    def get_products_moduler(self, obj):
+        # print(obj)
+        # if obj.name == "محل":
+            user_emp = obj.productsmoduler
+
+            serializer = ProductsSerializer(user_emp, many=True)
+            return serializer.data
+
+    def get_moduler_closed(self, obj):
+
+        moduler_closed = obj.modulerclosed
+
+        serializer = ModulerProfileSerializer(instance=moduler_closed, many=True)
+        return serializer.data

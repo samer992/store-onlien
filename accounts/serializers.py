@@ -62,11 +62,14 @@ class LoginSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(max_length=255, read_only=True)
     access_token = serializers.CharField(max_length=255, min_length=5, read_only=True)
     refresh_token = serializers.CharField(max_length=255, min_length=5, read_only=True)
+    isEmp= serializers.BooleanField(read_only=True)
+    to_moduler = serializers.IntegerField(read_only=True)
+    type_work = serializers.CharField(max_length=255, min_length=5, read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', "password", 'email', "full_name", 'access_token', 'refresh_token', "emp", "manager"]
-        # read_only_fields    = ['access_token', 'refresh_token', "first_name"]
+        fields = ['id', "password", 'email', "full_name", 'access_token', 'refresh_token', "isEmp", "to_moduler", "type_work"]
+        read_only_fields    = ['access_token', 'refresh_token', "first_name"]
 
 
     def validate(self, attrs):
@@ -80,9 +83,11 @@ class LoginSerializer(serializers.ModelSerializer):
 
         if employee:
 
-            full_name = employee[0].to_moduler
+            to_moduler = employee[0].to_moduler
+            type_work = employee[0].type_work
         else:
-            full_name = user.get_full_name
+            to_moduler = 0
+            type_work = user.get_full_name
 
         # print(type_work)
         if not user:
@@ -92,11 +97,11 @@ class LoginSerializer(serializers.ModelSerializer):
         user_tokens = user.tokens()
 
         return {
-            # "type_work": type_work,
-            "emp": user.emp,
-            'manager': user.manager,
+            "type_work": type_work,
+            "to_moduler": to_moduler,
+            'isEmp': user.emp,
             "email": user.email,
-            "full_name": full_name,
+            "full_name": user.get_full_name,
             "access_token": str(user_tokens.get("access")),
             "refresh_token": str(user_tokens.get("refresh")),
         }
@@ -178,7 +183,7 @@ class LogoutUserSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     userman = serializers.SerializerMethodField(method_name="get_user_manage", read_only=True)
     useremp = serializers.SerializerMethodField(method_name="get_employee", read_only=True)
-    profile = serializers.SerializerMethodField(method_name="get_user_profile", read_only=True)
+    # profile = serializers.SerializerMethodField(method_name="get_user_profile", read_only=True)
     class Meta:
         model = User
         fields = "__all__"
@@ -195,11 +200,11 @@ class UserSerializer(serializers.ModelSerializer):
         serializer = UserEmployeeSerializer(user_emp, many=True)
         return serializer.data
 
-    def get_user_profile(self, obj):
-        user_emp = obj.userprofile
-
-        serializer = ProfileSerializer(user_emp)
-        return serializer.data
+    # def get_user_profile(self, obj):
+    #     user_emp = obj.userprofile
+    #
+    #     serializer = ProfileSerializer(user_emp)
+    #     return serializer.data
 
 
 

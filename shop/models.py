@@ -15,6 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 # from django.db import models
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django_resized import ResizedImageField
 # from django.utils.translation import gettext_lazy as _
 # Create your models here.
 ################### ==> Products <== ###################
@@ -30,15 +31,18 @@ class Products(models.Model):
     description = models.CharField(max_length=150, verbose_name=_("description"))
     price_sale = models.DecimalField(decimal_places=2, max_digits=7, default=0)
     total_quantity = models.DecimalField(decimal_places=2, max_digits=7, default=0)
+    quantity_box = models.DecimalField(decimal_places=2, max_digits=7, default=0)
     type_quantity = models.CharField(max_length=100, null=True)
-    product_picture = models.ImageField(upload_to=upload_to, default="profile_img/store_logo.png")
+    type = models.CharField(max_length=100, null=True, default="qta3e")
+    # product_picture = models.ImageField(upload_to=upload_to, default="profile_img/store_logo.png")
+    product_picture = ResizedImageField(upload_to=upload_to, size=[300, 300], quality=75, force_format='JPEG', blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     type_id = models.IntegerField(default=1)
     barcode = models.ImageField(upload_to="images/", blank=True)
     barcode_id = models.CharField(max_length=13, null=True)
-    total_sale = models.DecimalField(decimal_places=2, max_digits=7, default=0)
+    total_sale = models.DecimalField(decimal_places=2, max_digits=50, default=0)
 
 
 
@@ -107,7 +111,7 @@ class PriceBuyProduct(models.Model):
     quantity = models.DecimalField(decimal_places=2, max_digits=7, default=0)
     quantity_total = models.DecimalField(decimal_places=2, max_digits=7, default=0)
     price_buy = models.DecimalField(decimal_places=2, max_digits=7, default=0)
-    total_buy = models.DecimalField(decimal_places=2, max_digits=7, default=0)
+    total_buy = models.DecimalField(decimal_places=2, max_digits=50, default=0)
     is_finished = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -127,7 +131,7 @@ class CatgoryProductType(models.Model):
 
 class ClosedDay(models.Model):
     usermanage = models.ForeignKey(User, on_delete=models.CASCADE)
-    moduler = models.ForeignKey(ModulerUserModel, on_delete=models.CASCADE, null=True)
+    moduler = models.ForeignKey(ModulerUserModel, on_delete=models.CASCADE, null=True, related_name="modulerclosed")
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(auto_now_add=True)
     is_finished = models.BooleanField(default=False)
@@ -149,7 +153,7 @@ class ClosedEmp(models.Model):
 class Order(models.Model):
     usermanage = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ordermanager")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orderuser")
-    moduler = models.ForeignKey(ModulerUserModel, on_delete=models.CASCADE)
+    moduler = models.ForeignKey(ModulerUserModel, on_delete=models.CASCADE, null=True)
     close_day = models.ForeignKey(ClosedDay, on_delete=models.CASCADE)
     close_emp = models.ForeignKey(ClosedEmp, on_delete=models.CASCADE, related_name="closeordersitems")
     order_date = models.DateTimeField(auto_now_add=True)

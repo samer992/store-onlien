@@ -35,15 +35,16 @@ class productsView(GenericAPIView):
         if request.user.manager:
             use = request.user.manageid
             user_man = User.objects.get(id=use)
-            product_data = request.data.copy()
+            product_data = request.data
             print(request.data["barcode_id"])
-            if product_data["barcode_id"]:
+            data = request.data.copy()
+            if data["barcode_id"]:
                 print("ok")
             else:
                 contary_code = 6
                 segl_tgary = 123456
                 id_pro = random.randint(11111, 99999)
-                product_data["barcode_id"] = f"{contary_code}{segl_tgary}{id_pro}"
+                data["barcode_id"] = f"{contary_code}{segl_tgary}{id_pro}"
                 print('not ok')
                 # print(number)
             # print(request.data["id_pro"])
@@ -122,7 +123,7 @@ class productsView(GenericAPIView):
                         'text_distance': 2.0,
                     }
                     xxx = barcode.get_barcode_class("code128")
-                    xcv = xxx(product_data["barcode_id"], writer=ImageWriter().set_options(options=options))
+                    xcv = xxx(data["barcode_id"], writer=ImageWriter().set_options(options=options))
                     buffer = BytesIO()
                     xcv.write(buffer)
                     # print(File(buffer).read)
@@ -130,7 +131,7 @@ class productsView(GenericAPIView):
                     print(path_fol)
 
                     xcv.save(path_fol+product_data['name'], File(buffer))
-                    print(product_data["product_picture"])
+                    # print(product_data["product_picture"])
 
                     pro = Products()
                     pro.user = request.user
@@ -139,6 +140,8 @@ class productsView(GenericAPIView):
                     pro.price_sale = product_data["price_sale"]
                     pro.barcode_id = xcv #str(my_code)
                     pro.total_quantity = product_data["quantity"]
+                    pro.quantity_box = product_data["quantity_box"]
+                    pro.type = product_data["type"]
                     pro.product_picture = product_data["product_picture"]
                     pro.is_active = product_data["is_active"]
                     pro.barcode = f"images/{product_data['name']}.svg"
@@ -288,9 +291,7 @@ class Cart(GenericAPIView):
             order_request_barcode = order_request["barcode_id"]
             order_request_payment = float(order_request["Payment"])
             order_request_orderItems = order_request["orderItems"]
-            # print(order_request_barcode)
-            # print(order_request_payment)
-            # print("orders_items_request")
+
             order_total = []
             for request_orderItem in order_request_orderItems:
                 order_request_orderItem_price = float(request_orderItem["price"])
@@ -322,13 +323,12 @@ class Cart(GenericAPIView):
                 order_request_orderItem_price = float(order_request_orderItem["price"])
                 order_request_orderItem_quantity = float(order_request_orderItem["quantity"])
                 order_total.append(order_request_orderItem_quantity*order_request_orderItem_price)
-                # print(order_request_orderItem_barcode)
-                # print(order_request_orderItem_price)
+
 
                 product = Products.objects.get(barcode_id=order_request_orderItem_barcode)
 
                 Price_Buy_Products = PriceBuyProduct.objects.all().filter(product=product, is_finished=False)
-                # print("Price_Buy_Products################################")
+
                 total_quantity_price_Buy = 0
                 for price_Buy_Product in Price_Buy_Products:
                     total_quantity_price_Buy += price_Buy_Product.quantity
@@ -346,31 +346,16 @@ class Cart(GenericAPIView):
 
                             if order_request_orderItem_quantity <= price_Buy_Product_InQty.quantity:
                                 price_Buy_Product_qty -= order_request_orderItem_quantity
-                                # price_Buy_Product_InQty.quantity = price_Buy_Product_qty
-                                # price_Buy_Product_InQty.save()
+
                                 quantity_to_order_details = order_request_orderItem_quantity
                                 order_request_orderItem_quantity = 0
                                 print(f"<= {price_Buy_Product_qty}")
                             else:
                                 order_request_orderItem_quantity -= price_Buy_Product_qty
                                 print(f"> {order_request_orderItem_quantity}")
-                                # price_Buy_Product_InQty.quantity = 0
-                                # price_Buy_Product_InQty.is_finished = True
-                                # price_Buy_Product_InQty.save()
+
                                 quantity_to_order_details = price_Buy_Product_qty
 
-                            # order_details = OrderDetails.objects.create(
-                            #     product=product,
-                            #     order=new_order,
-                            #     name=product.name,
-                            #     img=product.product_picture,
-                            #     price=order_request_orderItem_price,
-                            #     quantity=quantity_to_order_details,
-                            #     price_buy=price_Buy_Product_InQty.price_buy,
-                            #     dec_product=product.description,
-                            #     type_quantity=product.type_quantity,
-                            # )
-                            # order_details.save()
 
                     else:
                         return Response(f" {product}ادخل كميه",
@@ -388,8 +373,7 @@ class Cart(GenericAPIView):
         print(request.data)
 
         user = request.user
-        # print(user+"rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
-        # print(request.data)
+
         if user.emp:
             user_man = User.objects.get(id=user.manageid)
             # print("its emp")
@@ -560,6 +544,7 @@ class Cart(GenericAPIView):
 
                     else:
                         return Response(f"الكميه {product} غير كافيه باقى {total_quantity_price_Buy}", status=status.HTTP_400_BAD_REQUEST)
+                    break
 
 
                 print("saaaaaaaaaaam")
@@ -650,8 +635,7 @@ def backorder(request):
     orders = Order.objects.filter(usermanage=user_man, id=request.data["id_order"])
     # print(orders)
     if orders:
-        # orderItems_id = request.data["orderItemsListEdit"][0]["orderItems_id"]
-        # orderItems_quantity = request.data["orderItemsListEdit"][0]["quantity"]
+
         for i in request.data["orderItemsListEdit"]:
             print(i["orderItems_id"])
 
@@ -740,49 +724,15 @@ class AccountingView(GenericAPIView):
         user = request.user
         if user.manager:
             if ClosedDay.objects.filter(usermanage=user, is_finished=False, moduler=request.GET["moduler"]).exists():
-                closeDay = ClosedDay.objects.all().filter(usermanage=user, is_finished=False, moduler=request.GET["moduler"])
+                closeDay = ClosedDay.objects.filter(usermanage=user, is_finished=False, moduler=request.GET["moduler"])
 
-                # buyManagerv = BuyManager.objects.get(user=user, close_day=closeDay, is_finished=False)
-                # print(buyManagerv)
-                # buyManagerDetails = BuyManagerDetails.objects.all().filter(buymanager=buyManagerv)
-                # print(buyManagerDetails)
-                # closedEmp = ClosedEmp.objects.all().filter(close_day=closeDay, is_finished=False)
-                # serializer = BuyManagerSerializer(buyManagerv, many=True)
-
-                # closedEmp = ClosedEmp.objects.all().filter(usermanage=user, is_finished=False)
-                # print(closedEmp.order)
-                # closedEmp = ClosedEmp.objects.all().filter(close_day=closeDay, is_finished=False)
-                # serializer = ClosedEmpSerializer(closedEmp, many=False)
                 serializer = ClosedDaySerializer(closeDay, many=True)
-                # print(serializer.data)
-                # for i in serializer.data:
-                     # sum_total = []
-                     # order = serializer.data[i][id]
-                #     print(i[id])
-                # buyManager = BuyManager.objects.all().filter(user=user, close_day=closeDay, is_finished=False)
-                # # print(buyManager)
-                # total_msrof = 0
-                # for msrof in buyManager:
-                #     total_msrof += int(msrof.price)
-                #     # print(msrof.price)
-                # print(total_msrof)
-                # closedE = ClosedEmp.objects.all().filter(usermanage=user)
-                #
-                # x = []
-                # for i in closedE:
-                #
-                #     sum_total = []
-                #     order = Order.objects.all().filter(close_emp=i, close_day=closeDay)
-                #
-                #     for sa in order:
-                #
-                #         sum_total.append(sa.total)
-                #     x.append(sum(sum_total))
+                # print(serializer.data[0])
 
-                return Response({"close_day_info": serializer.data})
+                return Response({"close_day_info": serializer.data[0]})
             else:
                 print("store")
-                return Response({"close_day_info": "nd data"})
+                return Response({"close_day_info": []},status=status.HTTP_404_NOT_FOUND)
             # return Response({"msg": "no data closeDay", "totalall": float(0)})
 
 @api_view(['POST'])
@@ -829,7 +779,7 @@ def close_day(request):
         print(casher)
         for i in casher:
             print(i.emp_name)
-        return Response({"mesg": f"{i.emp_name} مش مقفل "})
+        return Response({"mesg": f"{i.emp_name} مش مقفل "},status=status.HTTP_400_BAD_REQUEST)
     else:
         close_day.is_finished = True
         close_day.save()
@@ -853,8 +803,11 @@ def close_day_accounting(request):
     if user.manager:
         closeDay = ClosedDay.objects.all().filter(usermanage=user, moduler=request.GET["moduler"])
         serializer = ClosedDaySerializer(instance=closeDay, many=True)
-        print(serializer.data)
+        print(closeDay)
+        if closeDay:
 
-        return Response({"close_day_info": serializer.data})
+            return Response({"close_day_info": serializer.data})
+        else:
+            return Response({"close_day_info": []},status=status.HTTP_404_NOT_FOUND)
     else:
         return Response({"report_product": "انته مش مدير"})

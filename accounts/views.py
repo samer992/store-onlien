@@ -83,20 +83,20 @@ class LoginUserView(GenericAPIView):
         # else:
         # print(user)
         # if not user:
-        user_em = User.objects.get(id=user.manageid)
-        employee = UserEmployee.objects.filter(usermanager=user_em, time_finshe=False, user=user)
-        print(user)
-        if employee:
-
-            type_work = employee[0].type_work
-        else:
-            type_work = ""
+        # user_em = User.objects.get(id=user.manageid)
+        # employee = UserEmployee.objects.filter(usermanager=user_em, time_finshe=False, user=user)
+        # print(user)
+        # if employee:
+        #
+        #     type_work = employee[0].type_work
+        # else:
+        #     type_work = ""
 
 
         serializer = self.serializer_class(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        # print(f"xxxxxxxx")
-        return Response({"data": serializer.data, "type_work": type_work}, status=status.HTTP_200_OK)
+        print(serializer.data)
+        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
         # else:
         #     print("xxxxxxx")
         #

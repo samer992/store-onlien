@@ -82,7 +82,7 @@ class ClosedDaySerializer(serializers.ModelSerializer):
     def get_closeday_items(self, obj):
         closeemp_items = obj.closeempitems.all()
 
-        serializer = ClosedEmpSerializer(closeemp_items, many=True)
+        serializer = ClosedEmpSerializer(instance= closeemp_items, many=True)
         #
         return serializer.data
 

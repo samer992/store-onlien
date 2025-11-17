@@ -60,17 +60,19 @@ class Tager(GenericAPIView):
 
 class TagerInvoic(GenericAPIView):
     permission_classes = [IsAuthenticated]
-    # serializer_class = TagerSerializer
+    serializer_class = TagerInvoicModelSerializer
 
     def post(self, request):
         user = request.user
         if user.is_authenticated:
             barcode = random.randint(111111111111, 999999999999)
             invoice_data = request.data
+            print(invoice_data)
             manger_user = User.objects.get(id=user.manageid)
             tager = TagerModel.objects.get(usermanage=manger_user, id=invoice_data["tager"])
             manage = UserManage.objects.get(user=manger_user)
-            moduler = ModulerUserModel.objects.get(usermanage=manage, id=invoice_data["moduler"])
+            # manage = UserManage.objects.get(user=manger_user)
+            moduler = ModulerUserModel.objects.get(usermanage=manage, id=int(invoice_data["moduler"]))
             invoice_items_data = invoice_data["invoiceitems"]
             invoice_total = 0
             for invoice_item in invoice_items_data:
@@ -105,6 +107,7 @@ class TagerInvoic(GenericAPIView):
             dof3a.user = user
             dof3a.tager = tager
             dof3a.dof3a = invoice_data["Payment"]
+            dof3a.description = "دفعه فى فاتوره"
             dof3a.save()
 
             return Response("تم بنجاح", status=status.HTTP_201_CREATED)
@@ -122,10 +125,10 @@ class TagerInvoic(GenericAPIView):
     #         manger_user = request.user.manageid
     #         user_man = User.objects.get(id=manger_user)
     #
-    #     togars = TagerInvoicModel.objects.filter(usermanage=user_man)
+    #     tager_invoice = TagerInvoicModel.objects.filter(usermanage=user_man)
     #
-    #     serializer = self.serializer_class(instance=togars, many=True)
+    #     serializer = self.serializer_class(instance=tager_invoice, many=True)
     #     print(serializer.data)
     #     return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-    #
+
 

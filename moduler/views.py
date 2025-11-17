@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import User
+from accounts.serializers import UserSerializer
 from .models import *
 from .serializer import MoudulerUserSerializer, MoudulerSerializer
 from rest_framework import status
@@ -81,3 +82,11 @@ def addmoduler(request, modu):
     add_moduler.save()
     return redirect("informathion")
 
+@api_view(['GET'])
+# @authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def localdata(request):
+    user = request.user
+    serializer = UserSerializer(instance=user, many=False)
+    # print(serializer.data)
+    return Response({"mymodulers": serializer.data["userman"]["mymodulers"]}, status=status.HTTP_200_OK)
